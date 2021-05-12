@@ -136,7 +136,11 @@
             }
             if (sessionId !== undefined && Object.keys(veiw['players']).length > 0) {
                 textSize(32);
-                fill(veiw['players'][sessionId]['color']);
+                try {
+                    fill(veiw['players'][sessionId]['color']);
+                } catch {
+                    fill(255);
+                }
                 text(veiw['players'][sessionId]['name'], windowWidth / 2 - 40, windowHeight / 2 - 40);
                 ellipse(windowWidth / 2, windowHeight / 2, 80, 80);
                 const x = veiw['players'][sessionId]['x']
@@ -144,7 +148,11 @@
                 for (player in veiw['players']) {
                     if (player !== sessionId) {
                         textSize(32);
-                        fill(veiw['players'][player]['color']);
+                        try {
+                            fill(veiw['players'][player]['color']);
+                        } catch {
+                            fill(255);
+                        }
                         text(veiw['players'][player]['name'], (windowWidth / 2 + (veiw['players'][player]['x'] - x)) - 40, (windowHeight / 2 - (veiw['players'][player]['y'] - y)) - 40);
                         ellipse((windowWidth / 2 + (veiw['players'][player]['x'] - x)), (windowHeight / 2 - (veiw['players'][player]['y'] - y)), 80, 80);
                     }
