@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>W3.CSS Template</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        html,
+        body,
+        main {
+            min-height: 100%;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden;
+        }
+
+        body {
+            height: 100vh;
+        }
+
+        .p5Canvas {
+            min-height: 100% !important;
+
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/flexboxgrid/6.3.1/flexboxgrid.min.css'>
+    </link>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.3.1/lib/p5.js"></script>
+</head>
+
+<body>
+    <div id="input-fields">
+        <form id="join" action="/limeri">
+            <p>Room</p>
+            <input id="join-room" autocomplete="off" />
+            <p>Name</p>
+            <input id="join-name" type="text">
+            <p>Color</p>
+            <input id="join-color" type="text">
+            <button id="join-button">Join</button>
+        </form>
+        <form id="create" action="/limeri">
+            <p>Room</p>
+            <input id="create-room" autocomplete="off" />
+            <p>Name</p>
+            <input id="create-name" type="text">
+            <p>Color</p>
+            <input id="create-color" type="text">
+            <button id="create-button">Create</button>
+        </form>
+    </div>
+    <script>
+        const socket = io.connect();
+        let sessionId;
+        let data;
+        let bg = 255;
+        socket.on('connect', (veiwData) => {
+            sessionId = socket.id;
+        });
+        $('#create-button').click((e) => {
+            e.preventDefault();
+            data = {
+                'board name': $('#create-room').val(),
+                'name': $('#create-name').val(),
+                'color': $('#create-color').val(),
+            }
+            $('#input-fields').remove();
+            socket.emit('create game', data)
+            bg = 0;
+        });
+        $('#join-button').click((e) => {
+            e.preventDefault();
+            data = {
+                'board name': $('#join-room').val(),
+                'name': $('#join-name').val(),
+                'color': $('#join-color').val(),
+            }
+            $('#input-fields').remove();
+            socket.emit('join game', data)
+            bg = 0;
+        });
+
+        let veiw = {
+            'players': {},
+            'projectiles': []
+        }
+        socket.on('draw', (veiwData) => {
+            if (Object.keys(veiw['players']).length > 0) {
+                if (veiw['players'][socket.id]['hp'] <= 0) {
+                    window.location.replace("http://limeri.dev.john-the-fourth.engineer/limeri");
+                }
+            }
+            veiw = veiwData
+            playerColor = veiw['players'][socket.id]['color']
+        });
+
+        function setup() {
+            createCanvas(windowWidth, windowHeight);
+            background(bg);
+            button = createButton('click me');
+            button.position(0, 0);
+            button.mousePressed(changeBG);
+        }
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+        }
+        function changeBG() {
+            let val = random(255);
+            background(val);
+        }
+        function mousePressed() {
+            data['vector'] = [mouseX - windowWidth / 2, windowHeight / 2 - mouseY]
+            socket.emit('shoot', data)
+        }
+
+        function draw() {
+            background(bg);
+            if (keyIsDown(87)) { // w
+                data['direction'] = 'w'
+                socket.emit('move', data)
+            }
+            if (keyIsDown(65)) { // a
+                data['direction'] = 'a'
+                socket.emit('move', data)
+            }
+            if (keyIsDown(83)) { // s
+                data['direction'] = 's'
+                socket.emit('move', data)
+            }
+            if (keyIsDown(68)) { // d
+                data['direction'] = 'd'
+                socket.emit('move', data)
+            }
+            if (sessionId !== undefined && Object.keys(veiw['players']).length > 0) {
+                textSize(32);
+                fill(veiw['players'][sessionId]['color']);
+                text(veiw['players'][sessionId]['name'], windowWidth / 2 - 40, windowHeight / 2 - 40);
+                ellipse(windowWidth / 2, windowHeight / 2, 80, 80);
+                const x = veiw['players'][sessionId]['x']
+                const y = veiw['players'][sessionId]['y']
+                for (player in veiw['players']) {
+                    if (player !== sessionId) {
+                        textSize(32);
+                        fill(veiw['players'][player]['color']);
+                        text(veiw['players'][player]['name'], (windowWidth / 2 + (veiw['players'][player]['x'] - x)) - 40, (windowHeight / 2 - (veiw['players'][player]['y'] - y)) - 40);
+                        ellipse((windowWidth / 2 + (veiw['players'][player]['x'] - x)), (windowHeight / 2 - (veiw['players'][player]['y'] - y)), 80, 80);
+                    }
+                }
+                veiw['projectiles'].forEach((projectile) => {
+                    fill(projectile['color'])
+                    ellipse((windowWidth / 2 + (projectile['currentPosition'][0] - x)), (windowHeight / 2 - (projectile['currentPosition'][1] - y)), 40, 40);
+                });
+            } else {
+                console.log('No data yet', sessionId)
+            }
+            if (mouseIsPressed) {
+                fill(0);
+            } else {
+                fill(255);
+            }
+            ellipse(mouseX, mouseY, 20, 20);
+        }
+    </script>
+    <script src="public/js/index.js"></script>
+</body>
+
+</html>
