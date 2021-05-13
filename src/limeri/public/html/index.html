@@ -90,7 +90,7 @@
         socket.on('draw', (veiwData) => {
             if (Object.keys(veiw['players']).length > 0) {
                 if (veiw['players'][socket.id]['hp'] <= 0) {
-                    window.location.replace("http://limeri.dev.john-the-fourth.engineer/limeri");
+                    window.location.replace("http://localhost:3000/limeri");
                 }
             }
             veiw = veiwData
