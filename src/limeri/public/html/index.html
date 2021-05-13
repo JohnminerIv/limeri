@@ -158,7 +158,11 @@
                     }
                 }
                 veiw['projectiles'].forEach((projectile) => {
-                    fill(projectile['color'])
+                    try {
+                        fill(projectile['color'])
+                    } catch {
+                        fill(255);
+                    }
                     ellipse((windowWidth / 2 + (projectile['currentPosition'][0] - x)), (windowHeight / 2 - (projectile['currentPosition'][1] - y)), 40, 40);
                 });
             } else {
